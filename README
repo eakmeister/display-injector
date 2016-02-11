@@ -1,0 +1,22 @@
+This is a project born out of the need to update the DISPLAY environment
+variable in a shell when being run under tmux. The basic problem is as follows:
+
+1) SSH to server using X-forwarding, open tmux.
+2) Detach from tmux, exit server.
+3) SSH back to server, reattach to tmux. Opening X applications may now not
+   work due to DISPLAY being incorrect.
+
+There are a couple ways people have thought of to fix this. One popular
+solution is to update DISPLAY from the outside environment every command. This
+is too hacky for me, so I propose the following way less hacky solution:
+Whenever you reattach with tmux, go through all the active shell processes in
+tmux and edit their memory to update the environment variable. See, not hacky
+at all.
+
+This project allows that functionality. When run, it forks the given
+subcommand, and simultaniously listens to a socket in /tmp/display-injector.
+Anything sent to that socket will then be set as the DISPLAY of the subprocess.
+
+This most definitely has terrible, awful, too-bad-to-think-about security
+implications. So I haven't.
+
