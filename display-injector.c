@@ -211,7 +211,6 @@ void allocate_display_space(int pid, long free_addr)
                 if (!strncmp(c, "DISPLAY=", 8)) {
                     write_data(pid, free_addr, c, strlen(c));
                     write_data(pid, environ + i * sizeof(env_ptr), &free_addr, sizeof(free_addr));
-                    printf("DISPLAY location successfully changed\n");
                     break;
                 }
 
@@ -222,9 +221,11 @@ void allocate_display_space(int pid, long free_addr)
 }
 
 void update_display(pid_t pid, long display_addr, char *val, int len) {
+    while (len > 1 && (val[len - 2] == '\r' || val[len - 2] == '\n'))
+        len -= 1;
+
     // write it after the DISPLAY= part
     write_data(pid, display_addr + 8, val, len);
-    printf("Updated DISPLAY\n");
 }
 
 long find_free_space(pid_t pid) {
@@ -272,7 +273,7 @@ void parent(pid_t pid) {
 
     listen(s, 5);
 
-    sleep(1); // give process time to start; calling ptrace_attach too soon seems to crash things
+    sleep(5); // give process time to start; calling ptrace_attach too soon seems to crash things
 	ptrace_attach(pid);
     long free_addr = find_free_space(pid);
     allocate_display_space(pid, free_addr);
